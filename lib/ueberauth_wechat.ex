@@ -1,0 +1,2 @@
+defmodule UeberauthWechat do
+end
