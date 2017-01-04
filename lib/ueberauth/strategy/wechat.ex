@@ -176,8 +176,8 @@ defmodule Ueberauth.Strategy.Wechat do
 
   defp fetch_user(conn, token) do
     conn = put_private(conn, :wechat_token, token)
-    # Will be better with Elixir 1.3 with/else
-    case Ueberauth.Strategy.Wechat.OAuth.get(token, "/sns/userinfo") do
+    fetch_user_url = "/userinfo?access_token=#{token.access_token}&openid=#{token.openid}"
+    case Ueberauth.Strategy.Wechat.OAuth.get(token, fetch_user_url) do
       { :ok, %OAuth2.Response{status_code: 401, body: _body}} ->
         set_errors!(conn, [error("token", "unauthorized")])
       { :ok, %OAuth2.Response{status_code: status_code, body: user} } when status_code in 200..399 ->

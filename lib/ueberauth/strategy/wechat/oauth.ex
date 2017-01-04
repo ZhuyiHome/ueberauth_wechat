@@ -59,12 +59,27 @@ defmodule Ueberauth.Strategy.Wechat.OAuth do
   # Strategy Callbacks
 
   def authorize_url(client, params) do
-    OAuth2.Strategy.AuthCode.authorize_url(client, params)
+    client
+    |> put_param(:response_type, "code")
+    |> put_param(:appid, client.client_id)
+    |> put_param(:redirect_uri, client.redirect_uri)
+    |> merge_params(params)
   end
 
   def get_token(client, params, headers) do
+    {code, params} = Keyword.pop(params, :code, client.params["code"])
+    unless code do
+      raise OAuth2.Error, reason: "Missing required key `code` for `#{inspect __MODULE__}`"
+    end
+
     client
     |> put_header("Accept", "application/json")
-    |> OAuth2.Strategy.AuthCode.get_token(params, headers)
+    |> put_param(:code, code)
+    |> put_param(:grant_type, "authorization_code")
+    |> put_param(:appid, client.client_id)
+    |> put_param(:secret, client.client_secret)
+    |> put_param(:redirect_uri, client.redirect_uri)
+    |> merge_params(params)
+    |> put_headers(headers)
   end
 end
